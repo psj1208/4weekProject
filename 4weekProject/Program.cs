@@ -143,8 +143,10 @@ namespace _4weekProject
             CurSceneType curSceneType = CurSceneType.Lobby;
             Player player;
             bool gameexit = false;
+            //게임 종료 활성화 시 탈출
             while (gameexit == false)
             {
+                //로비(시작 시)
                 if (curSceneType == CurSceneType.Lobby)
                 {
                     while (true)
@@ -163,8 +165,10 @@ namespace _4weekProject
                         Console.Write(5 - i + "   ");
                         Thread.Sleep(1000);
                     }
+                    //씬 이동 역할
                     curSceneType = CurSceneType.Home;
                 }
+                //게임 시작 후 마을로
                 else if (curSceneType == CurSceneType.Home)
                 {
                     while (true)
@@ -176,6 +180,7 @@ namespace _4weekProject
         }
     }
 
+    //아이템 데이터 베이스 관리
     class ItemDataBase
     {
         public List<Equipment> equipDataBase;

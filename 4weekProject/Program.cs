@@ -7,6 +7,7 @@ namespace _4weekProject
     {
         Lobby,
         Home,
+        Explore,
         Store
     }
 
@@ -149,14 +150,22 @@ namespace _4weekProject
                 //로비(시작 시)
                 if (curSceneType == CurSceneType.Lobby)
                 {
+                    Console.Clear();
+                    Text.TextingLine("이름을 정해주세요.");
+                    Text.Texting(">>");
                     while (true)
                     {
-                        Text.TextingLine("이름을 정해주세요.");
                         String? name = Console.ReadLine();
                         if (!String.IsNullOrEmpty(name))
                         {
                             player = new Player(name);
                             break;
+                        }
+                        else
+                        {
+                            Console.Clear();
+                            Text.TextingLine("공백은 이름으로 사용할 수 없습니다.");
+                            Text.Texting(">>");
                         }
                     }
                     Text.TextingLine("마을로 입장하겠습니다. 조금만 기다려주세요");
@@ -171,9 +180,36 @@ namespace _4weekProject
                 //게임 시작 후 마을로
                 else if (curSceneType == CurSceneType.Home)
                 {
+                    Console.Clear();
                     while (true)
                     {
-
+                        Text.TextingLine("마을에 오신 것을 환영합니다.");
+                        Text.TextingLine("원하시는 활동을 선택해주세요.\n");
+                        Text.TextingLine("1. 상태 보기", ConsoleColor.Green);
+                        Text.TextingLine("2. 인벤토리", ConsoleColor.Green);
+                        Text.TextingLine("3. 상점", ConsoleColor.Green);
+                        Text.Texting("\n>>");
+                        bool inputrepeat = true;
+                        while (inputrepeat == true) 
+                        {
+                            string input = Console.ReadLine();
+                            switch (input)
+                            {
+                                case "1":
+                                    inputrepeat = false;
+                                    break;
+                                case "2":
+                                    inputrepeat = false;
+                                    break;
+                                case "3":
+                                    inputrepeat = false;
+                                    break;
+                                default:
+                                    Text.TextingLine("적합하지 않은 숫자입니다. 다시 입력해주세요.", ConsoleColor.Red);
+                                    Text.Texting(">>");
+                                    break;
+                            };
+                        }
                     }
                 }
             }
@@ -201,24 +237,27 @@ namespace _4weekProject
     //텍스트 효과용 Static 클래스
     static class Text
     {
-        public static void TextingLine(string text)
+        public static void TextingLine(string text, ConsoleColor color = ConsoleColor.White)
         {
+            Console.ForegroundColor = color;
             foreach (char ch in text)
             {
                 Console.Write(ch);
                 Thread.Sleep(20);
             }
             Console.WriteLine();
-
+            Console.ResetColor();
         }
 
-        public static void Texting(string text)
+        public static void Texting(string text, ConsoleColor color = ConsoleColor.White)
         {
+            Console.ForegroundColor = color;
             foreach (char ch in text)
             {
                 Console.Write(ch);
                 Thread.Sleep(20);
             }
+            Console.ResetColor();
         }
     }
 }

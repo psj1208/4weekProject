@@ -1,8 +1,31 @@
 ﻿using System.ComponentModel.Design;
+using System.Drawing;
+using System.Net.Security;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using static GlobalData;
 
 namespace _4weekProject
 {
+    public static class Number
+    {
+        public static int[] Make(int start,int end)
+        {
+            int[] ints = new int[end - start + 1];
+            for (int i = 0; i < ints.Length; i++)
+            {
+                ints[i] = start + i;
+            }
+            return ints;
+        }
+    }
+    public struct Point_
+    {
+        int x;
+        int y;
+    }
     public enum CurSceneType
     {
         Lobby,
@@ -11,6 +34,11 @@ namespace _4weekProject
         Store
     }
 
+    public enum ItemType
+    {
+        Consumable,
+        NonConsumable
+    }
     public enum EquipmentType
     {
         weapon,
@@ -55,81 +83,94 @@ namespace _4weekProject
     //Warrior 클래스를 대체합니다.
     public class Player : ICharacter
     {
+        public int level;
         public string Name { get; set; }
         public int Health { get; set; }
         public int Attack { get; set; }
+        public int defense { get; set; }
+        public int Gold;
+
+        public Inventory inven;
         public bool IsDead { get; set; }
         public CharacterType type { get; set; } = CharacterType.Player;
 
+        public Player()
+        {
+        }
         public Player(string name)
         {
+            level = 1;
             Name = name;
             Health = 100;
             Attack = 10;
+            defense = 0;
+            Gold = 100;
             IsDead = false;
+            inven = new Inventory();
             Text.TextingLine($"환영합니다. {Name} 님");
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
         }
         public void TakeDamage(int damage)
         {
             Text.TextingLine($"{Name}이 {damage}피해를 받았습니다!");
         }
-    }
 
-    public interface IItem
-    {
-        string Name { get; set; }
-        void Use(Player player);
-    }
-
-    public class HealthPotion : IItem
-    {
-        public string Name { get; set; }
-        public void Use(Player player)
+        public void AddInven(IItem item)
         {
+            if (inven != null)
+            {
+                inven.AddItem(item);
+            }
+        }
+        public void ShowStat()
+        {
+            (int left, int top) point;
+            Text.SaveStartPos();
+            Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
+            Text.TextingLine($"Lv. {level}", ConsoleColor.Green);
+            Text.TextingLine($"이름. {Name}", ConsoleColor.Green);
+            Text.TextingLine($"체력. {Health}", ConsoleColor.Green);
+            Text.TextingLine($"공격력. {Attack}", ConsoleColor.Red);
+            Text.TextingLine($"방어력. {defense}", ConsoleColor.Magenta);
+            Text.TextingLine($"돈. {Gold}", ConsoleColor.Yellow);
+            Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
+            Text.SaveEndPos();
+            Text.Texting("\n\n");
         }
     }
 
-    public class StrengthPotion
+    public class Inventory
     {
-        public string Name { get; set; }
-        public void Use(Player player)
-        {
-        }
-    }
-    public class Equipment
-    {
-        //이름,구매가격,판매가격,공격력,방어력
-        public string Name;
-        public double buyPrice;
-        public double sellPrice;
-        public int attackBonus;
-        public int defenseBonus;
-        public EquipmentType equipType;
+        public List<IItem> items;
 
-        public Equipment(string name, double buyPrice, int attackBonus, int defenseBonus, EquipmentType equipType)
+        public Inventory()
         {
-            Name = name;
-            this.buyPrice = buyPrice;
-            this.sellPrice = Math.Round(buyPrice * 0.7f);
-            this.attackBonus = attackBonus;
-            this.defenseBonus = defenseBonus;
-            this.equipType = equipType;
+            items = new List<IItem>();
         }
-    }
-    public class Weapon : Equipment
-    {
-        //부모(Equipment) 생성자 호출
-        public Weapon(string name, int buy, int atk, int def, EquipmentType equipType) : base(name, buy, atk, def, equipType)
+        public void ShowInventory()
         {
+            (int left, int top) point;
+            Text.SaveStartPos();
+            Text.TextingLine("플레이어 인벤토리");
+            Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
+            for (int i = 0; i < items.Count; i++)
+            {
+                Text.TextingLine($"{i + 1} . {items[i].Name} : {items[i].description()}",ConsoleColor.Green);
+            }
+            Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
+            Text.TextingLine("아이템 사용은 해당 번호를, 나가시려면 0을 입력해주세요.",ConsoleColor.Green);
+            Console.WriteLine(Number.Make(0, items.Count));
+            Text.GetInput(null,Number.Make(0, items.Count));
+            Text.SaveEndPos();
         }
-    }
 
-    public class Armour : Equipment
-    {
-        //부모(Equipment) 생성자 호출
-        public Armour(string name, int buy, int atk, int def, EquipmentType equipType) : base(name, buy, atk, def, equipType)
+        public void AddItem(IItem item)
         {
+            items.Add(item);
+        }
+        public void UseItem(int num)
+        {
+
         }
     }
     class Program
@@ -142,7 +183,8 @@ namespace _4weekProject
         static void GameStart()
         {
             CurSceneType curSceneType = CurSceneType.Lobby;
-            Player player;
+            Player player = new Player();
+            ItemDataBase IDB = new ItemDataBase();
             bool gameexit = false;
             //게임 종료 활성화 시 탈출
             while (gameexit == false)
@@ -151,23 +193,10 @@ namespace _4weekProject
                 if (curSceneType == CurSceneType.Lobby)
                 {
                     Console.Clear();
-                    Text.TextingLine("이름을 정해주세요.");
-                    Text.Texting(">>");
-                    while (true)
-                    {
-                        String? name = Console.ReadLine();
-                        if (!String.IsNullOrEmpty(name))
-                        {
-                            player = new Player(name);
-                            break;
-                        }
-                        else
-                        {
-                            Console.Clear();
-                            Text.TextingLine("공백은 이름으로 사용할 수 없습니다.");
-                            Text.Texting(">>");
-                        }
-                    }
+                    string name = Text.GetInput("이름을 정해주세요.");
+                    player = new Player(name);
+                    player.AddInven(IDB.returnItem(0));
+                    player.AddInven(IDB.returnItem(1));
                     Text.TextingLine("마을로 입장하겠습니다. 조금만 기다려주세요");
                     for (int i = 0; i < 5; i++)
                     {
@@ -188,27 +217,26 @@ namespace _4weekProject
                         Text.TextingLine("1. 상태 보기", ConsoleColor.Green);
                         Text.TextingLine("2. 인벤토리", ConsoleColor.Green);
                         Text.TextingLine("3. 상점", ConsoleColor.Green);
-                        Text.Texting("\n>>");
-                        bool inputrepeat = true;
-                        while (inputrepeat == true) 
+                        Text.TextingLine("4. 던전으로", ConsoleColor.Green);
+                        string input = Text.GetInput(null, 1, 2, 3, 4);
+                        switch (input)
                         {
-                            string input = Console.ReadLine();
-                            switch (input)
-                            {
-                                case "1":
-                                    inputrepeat = false;
-                                    break;
-                                case "2":
-                                    inputrepeat = false;
-                                    break;
-                                case "3":
-                                    inputrepeat = false;
-                                    break;
-                                default:
-                                    Text.TextingLine("적합하지 않은 숫자입니다. 다시 입력해주세요.", ConsoleColor.Red);
-                                    Text.Texting(">>");
-                                    break;
-                            };
+                            case "1":
+                                Console.Clear();
+                                Text.TextingLine("플레이어의 현재 스탯입니다.",ConsoleColor.Green);
+                                player.ShowStat();
+                                input = Text.GetInput("마을로 돌아가시려면 0을 입력해주세요.", 0);
+                                Console.Clear();
+                                break;
+                            case "2":
+                                Console.Clear();
+                                player.inven.ShowInventory();
+                                Console.Clear();
+                                break;
+                            case "3":
+                                break;
+                            default:
+                                break;
                         }
                     }
                 }
@@ -232,32 +260,14 @@ namespace _4weekProject
         {
             equipDataBase.Add(equip);
         }
-    }
 
-    //텍스트 효과용 Static 클래스
-    static class Text
-    {
-        public static void TextingLine(string text, ConsoleColor color = ConsoleColor.White)
+        public IItem returnItem(int i)
         {
-            Console.ForegroundColor = color;
-            foreach (char ch in text)
+            if(i < equipDataBase.Count)
             {
-                Console.Write(ch);
-                Thread.Sleep(20);
+                return equipDataBase[i];
             }
-            Console.WriteLine();
-            Console.ResetColor();
-        }
-
-        public static void Texting(string text, ConsoleColor color = ConsoleColor.White)
-        {
-            Console.ForegroundColor = color;
-            foreach (char ch in text)
-            {
-                Console.Write(ch);
-                Thread.Sleep(20);
-            }
-            Console.ResetColor();
+            return null;
         }
     }
 }

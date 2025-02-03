@@ -69,7 +69,7 @@ namespace _4weekProject
         }
 
         //플레이어에게 제시하는 행동 선택지를 함수로 만듬.(Main문을 간결하게 만들어준다)
-        public static string GetInput(string starttext = null, params int[] selectgroup)
+        public static int GetInput(string starttext = null, params int[] selectgroup)
         {
             SaveStartPos();
             if (!String.IsNullOrEmpty(starttext))
@@ -93,7 +93,9 @@ namespace _4weekProject
                     SaveEndPos();
                 }
             }
-            return input;
+            ClearTextBetween();
+            Console.WriteLine();
+            return int.Parse(input);
         }
 
 

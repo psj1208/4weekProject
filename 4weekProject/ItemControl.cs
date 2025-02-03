@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using static GlobalData;
 
 namespace _4weekProject
 {
-    internal class ItemControl
-    {
-    }
-
     public interface IItem
     {
         string Name { get; set; }
         ItemType type { get; set; }
-        void Use(Player player);
-
+        double buyPrice { get; set; }
+        double sellPrice { get; set; }
+        int amt { get; set; }
+        bool Use(Player player);
+        void UnUse(Player player);
         string description();
     }
 
@@ -25,51 +25,74 @@ namespace _4weekProject
         public string Name { get; set; }
         public double buyPrice { get; set; }
         public double sellPrice { get; set; }
+        public int amt { get; set; }
         public ItemType type { get; set; }
 
         public string description_ { get; set; }
-        public void Use(Player player)
+        public virtual bool Use(Player player)
         {
-            Text.TextingLine($"{Name} 사용 !", ConsoleColor.Red);
+            return false;
         }
 
+        public void UnUse(Player player)
+        {
+        }
         public string description()
         {
-            return description_;
+            return $"{Name} : {description_} , 수량 : {amt}";
         }
     }
     public class HealthPotion : Consumable
     {
-        public HealthPotion()
+        public HealthPotion(int num = 1)
         {
             Name = "힐링포션";
             type = ItemType.NonConsumable;
+            amt = num;
             buyPrice = 20;
             sellPrice = Math.Round(buyPrice * sellingratio);
-            description_ = "체력을 10 회복시켜줍니다.";
+            description_ = "체력 20 회복";
+        }
+
+        public override bool Use(Player player)
+        {
+            Text.TextingLine($"{Name} 사용 ! , {description_}", ConsoleColor.Red);
+            amt--;
+            player.Health += 20;
+            return true;
         }
     }
 
     public class StrengthPotion : Consumable
     {
-        public StrengthPotion()
+        public StrengthPotion(int num = 1)
         {
-            Name = "힘포션";
+            Name = "힘영약";
             type = ItemType.NonConsumable;
-            buyPrice = 20;
+            amt = num;
+            buyPrice = 300;
             sellPrice = Math.Round(buyPrice * sellingratio);
-            description_ = "한번의 대전동안 공격력을 5 상승시켜줍니다.";
+            description_ = "영구적으로 공격력을 1 상승";
+        }
+        public override bool Use(Player player)
+        {
+            Text.TextingLine($"{Name} 사용 ! , {description_}", ConsoleColor.Red);
+            amt--;
+            player.Attack += 1;
+            return true;
         }
     }
     public class Equipment : IItem
     {
         //이름,구매가격,판매가격,공격력,방어력
         public string Name { get; set; }
-        public double buyPrice;
-        public double sellPrice;
+        public double buyPrice { get; set; }
+        public double sellPrice { get; set; }
         public int attackBonus;
         public int defenseBonus;
+        public int amt { get; set; }
         public ItemType type { get; set; }
+        public void Plusamt(int i) { }
         public EquipmentType equipType;
 
         public Equipment(string name, double buyPrice, int attackBonus, int defenseBonus, EquipmentType equipType)
@@ -83,15 +106,31 @@ namespace _4weekProject
             this.equipType = equipType;
         }
 
-        public void Use(Player player)
+        public bool Use(Player player)
         {
-            player.Attack += attackBonus;
-            player.defense += defenseBonus;
+            if (player.Equip(this))
+            {
+                player.Attack += attackBonus;
+                player.defense += defenseBonus;
+                Text.TextingLine($"{this.Name} 장착 ! ");
+                return true;
+            }
+            else
+            {
+                Text.TextingLine("장착에 실패했습니다.", ConsoleColor.Green);
+                return false;
+            }
+        }
+
+        public void UnUse(Player player)
+        {
+            player.Attack -= attackBonus;
+            player.defense -= defenseBonus;
         }
 
         public string description()
         {
-            return $"구매 가격: {buyPrice} , 판매 가격: {sellPrice} , 공격력: {attackBonus} , 방어력: {defenseBonus}";
+            return $"{Name} : 구매 가격: {buyPrice} , 판매 가격: {sellPrice} , 공격력: {attackBonus} , 방어력: {defenseBonus}";
         }
     }
     public class Weapon : Equipment

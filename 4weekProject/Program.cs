@@ -26,7 +26,7 @@ namespace _4weekProject
         int x;
         int y;
     }
-    public enum CurSceneType
+    public enum SceneType
     {
         Lobby,
         Home,
@@ -49,130 +49,7 @@ namespace _4weekProject
         Player, //Warrior 타입을 대체합니다.
         Monster
     }
-    public interface ICharacter
-    {
-        string Name { get; set; }
-        int Health { get; set; }
-        int Attack { get; set; }
-        bool IsDead { get; set; }
-        CharacterType type { get; set; }
-        void TakeDamage(int damage);
-    }
-
-    public class Monster : ICharacter
-    {
-        public string Name { get; set; }
-        public int Health { get; set; }
-        public int Attack { get; set; }
-        public bool IsDead { get; set; }
-        public CharacterType type { get; set; } = CharacterType.Monster;
-
-        public Monster(string name, int hp, int atk)
-        {
-            Name = name;
-            Health = hp;
-            Attack = atk;
-            IsDead = false;
-        }
-        public void TakeDamage(int damage)
-        {
-            Health -= damage;
-            Text.TextingLine($"{Name}이 {damage}피해를 받았습니다!");
-        }
-    }
-    //Warrior 클래스를 대체합니다.
-    public class Player : ICharacter
-    {
-        public int level;
-        public string Name { get; set; }
-        public int Health { get; set; }
-        public int Attack { get; set; }
-        public int defense { get; set; }
-        public int Gold;
-
-        public Inventory inven;
-        public bool IsDead { get; set; }
-        public CharacterType type { get; set; } = CharacterType.Player;
-
-        public Player()
-        {
-        }
-        public Player(string name)
-        {
-            level = 1;
-            Name = name;
-            Health = 100;
-            Attack = 10;
-            defense = 0;
-            Gold = 100;
-            IsDead = false;
-            inven = new Inventory();
-            Text.TextingLine($"환영합니다. {Name} 님");
-            Thread.Sleep(1000);
-        }
-        public void TakeDamage(int damage)
-        {
-            Text.TextingLine($"{Name}이 {damage}피해를 받았습니다!");
-        }
-
-        public void AddInven(IItem item)
-        {
-            if (inven != null)
-            {
-                inven.AddItem(item);
-            }
-        }
-        public void ShowStat()
-        {
-            (int left, int top) point;
-            Text.SaveStartPos();
-            Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
-            Text.TextingLine($"Lv. {level}", ConsoleColor.Green);
-            Text.TextingLine($"이름. {Name}", ConsoleColor.Green);
-            Text.TextingLine($"체력. {Health}", ConsoleColor.Green);
-            Text.TextingLine($"공격력. {Attack}", ConsoleColor.Red);
-            Text.TextingLine($"방어력. {defense}", ConsoleColor.Magenta);
-            Text.TextingLine($"돈. {Gold}", ConsoleColor.Yellow);
-            Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
-            Text.SaveEndPos();
-            Text.Texting("\n\n");
-        }
-    }
-
-    public class Inventory
-    {
-        public List<IItem> items;
-
-        public Inventory()
-        {
-            items = new List<IItem>();
-        }
-        public void ShowInventory()
-        {
-            (int left, int top) point;
-            Text.SaveStartPos();
-            Text.TextingLine("플레이어 인벤토리");
-            Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
-            for (int i = 0; i < items.Count; i++)
-            {
-                Text.TextingLine($"{i + 1} . {items[i].Name} : {items[i].description()}",ConsoleColor.Green);
-            }
-            Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
-            Text.TextingLine("아이템 사용은 해당 번호를, 나가시려면 0을 입력해주세요.",ConsoleColor.Green);
-            Console.WriteLine(Number.Make(0, items.Count));
-            Text.GetInput(null,Number.Make(0, items.Count));
-            Text.SaveEndPos();
-        }
-
-        public void AddItem(IItem item)
-        {
-            items.Add(item);
-        }
-        public void UseItem(int num)
-        {
-
-        }
-    }
+    
     class Program
     {
         static void Main(string[] args)
@@ -182,32 +59,36 @@ namespace _4weekProject
 
         static void GameStart()
         {
-            CurSceneType curSceneType = CurSceneType.Lobby;
+            SceneType curSceneType = SceneType.Lobby;
             Player player = new Player();
             ItemDataBase IDB = new ItemDataBase();
+            Stage stage = new Stage();
+            Shop shop = new Shop();
             bool gameexit = false;
             //게임 종료 활성화 시 탈출
             while (gameexit == false)
             {
                 //로비(시작 시)
-                if (curSceneType == CurSceneType.Lobby)
+                if (curSceneType == SceneType.Lobby)
                 {
                     Console.Clear();
                     string name = Text.GetInput("이름을 정해주세요.");
                     player = new Player(name);
-                    player.AddInven(IDB.returnItem(0));
-                    player.AddInven(IDB.returnItem(1));
+                    shop = new Shop(player, IDB);
+                    //디버깅 코드
+                    player.Health = 10;
+                    player.inven.AddItem(IDB.ShopDataBase[0][0]);
+                    player.inven.AddItem(IDB.ShopDataBase[0][1]);
+                    player.inven.AddItem(new HealthPotion());
+                    player.inven.AddItem(new HealthPotion());
+                    player.inven.AddItem(new HealthPotion());
                     Text.TextingLine("마을로 입장하겠습니다. 조금만 기다려주세요");
-                    for (int i = 0; i < 5; i++)
-                    {
-                        Console.Write(5 - i + "   ");
-                        Thread.Sleep(1000);
-                    }
+                    Counting(3);
                     //씬 이동 역할
-                    curSceneType = CurSceneType.Home;
+                    curSceneType = SceneType.Home;
                 }
                 //게임 시작 후 마을로
-                else if (curSceneType == CurSceneType.Home)
+                else if (curSceneType == SceneType.Home)
                 {
                     Console.Clear();
                     while (true)
@@ -218,56 +99,115 @@ namespace _4weekProject
                         Text.TextingLine("2. 인벤토리", ConsoleColor.Green);
                         Text.TextingLine("3. 상점", ConsoleColor.Green);
                         Text.TextingLine("4. 던전으로", ConsoleColor.Green);
-                        string input = Text.GetInput(null, 1, 2, 3, 4);
+                        int input = Text.GetInput(null, 1, 2, 3, 4);
                         switch (input)
                         {
-                            case "1":
+                            case 1:
                                 Console.Clear();
-                                Text.TextingLine("플레이어의 현재 스탯입니다.",ConsoleColor.Green);
+                                Text.TextingLine("플레이어의 현재 스탯입니다.", ConsoleColor.Green);
                                 player.ShowStat();
                                 input = Text.GetInput("마을로 돌아가시려면 0을 입력해주세요.", 0);
                                 Console.Clear();
                                 break;
-                            case "2":
+                            case 2:
                                 Console.Clear();
                                 player.inven.ShowInventory();
                                 Console.Clear();
                                 break;
-                            case "3":
+                            case 3:
+                                Console.Clear();
+                                shop.ShowShop();
+                                Console.Clear();
+                                break;
+                            case 4:
+                                Console.Clear();
+                                Text.TextingLine("스테이지 1. 추천 레벨 0~5 출현 몬스터 ");
+                                input = Text.GetInput(null, 1);
+                                stage = new Stage(input);
+                                Text.TextingLine($"스테이지 {input}으로 이동합니다.");
+                                Counting(3);
+                                curSceneType = SceneType.Explore;
                                 break;
                             default:
                                 break;
                         }
+                        break;
                     }
                 }
+                else if (curSceneType == SceneType.Explore)
+                {
+                    Console.Clear();
+                    Random rand = new Random();
+                    bool isPlayerturn = true;
+                    for (int i = 0; i < stage.length; i++)
+                    {
+                        if (player.IsDead == true)
+                            break;
+                        Monster monster = stage.MakeMonster().GetCopy();
+                        Text.Texting("탐험 중 ", ConsoleColor.Blue, false);
+                        for (int a = 0; a < 5; a++)
+                        {
+                            Text.Texting(" . ", ConsoleColor.Blue, false);
+                            Thread.Sleep(1000);
+                        }
+                        Console.WriteLine();
+                        Text.TextingLine($"당신은 {monster.Name}을 만났다!" , ConsoleColor.Magenta);
+                        Text.TextingLine("0 . 싸운다.", ConsoleColor.Green);
+                        Text.TextingLine("1 . 도망간다.", ConsoleColor.Green);
+                        int input = Text.GetInput(null, 0, 1);
+                        if (input == 0)
+                        {
+                            while (true)
+                            {
+                                if (player.IsDead == true || monster.IsDead == true)
+                                {
+                                    break;
+                                }
+                                if (isPlayerturn == true)
+                                {
+                                    player.AttackEnemy(monster);
+                                    isPlayerturn = !isPlayerturn;
+                                    Thread.Sleep(1000);
+                                }
+                                else if (isPlayerturn == false)
+                                {
+                                    monster.AttackEnemy(player);
+                                    isPlayerturn = !isPlayerturn;
+                                    Thread.Sleep(1000);
+                                }
+                            }
+                            if (player.IsDead == true)
+                            {
+                                Text.TextingLine("패배하였습니다.", ConsoleColor.Red);
+                                Text.GetInput("다음 (0 입력)", 0);
+                                gameexit = true;
+                            }
+                            else
+                            {
+                                Text.TextingLine("승리하였습니다.", ConsoleColor.Green);
+                                player.Getexp(monster.Exp);
+                                Text.TextingLine($"{player.Name} 의 남은 체력 : {player.Health}");
+                                Text.GetInput("다음 (0 입력)", 0);
+                            }
+                            Console.Clear();
+                        }
+                        else 
+                            break;
+                    }
+                    curSceneType = SceneType.Home;
+                }
             }
+            Console.Clear();
+            Console.WriteLine("게임 끝!");
+            player.ShowStat();
         }
-    }
-
-    //아이템 데이터 베이스 관리
-    class ItemDataBase
-    {
-        public List<Equipment> equipDataBase;
-
-        public ItemDataBase()
+        static  void Counting(int num)
         {
-            equipDataBase = new List<Equipment>();
-            PlusDataBase(new Weapon("부러진 직검", 100, 5, 0, EquipmentType.weapon));
-            PlusDataBase(new Armour("찌그러진 방패", 100, 0, 3, EquipmentType.armour));
-        }
-
-        public void PlusDataBase(Equipment equip)
-        {
-            equipDataBase.Add(equip);
-        }
-
-        public IItem returnItem(int i)
-        {
-            if(i < equipDataBase.Count)
+            for (int i = 0; i < num; i++)
             {
-                return equipDataBase[i];
+                Console.Write(num - i + "   ");
+                Thread.Sleep(1000);
             }
-            return null;
         }
     }
 }

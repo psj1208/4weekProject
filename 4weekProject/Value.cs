@@ -7,4 +7,6 @@ using System.Threading.Tasks;
 public record GlobalData
 {
     public static double sellingratio = 0.7;
+    public static int HealthPerLevel = 20;
+    public static int AtkPerLevel = 2;
 }

@@ -18,6 +18,8 @@ namespace _4weekProject
         bool Use(Player player);
         void UnUse(Player player);
         string description();
+
+        IItem DeepCopy();
     }
 
     public class Consumable : IItem
@@ -41,6 +43,11 @@ namespace _4weekProject
         {
             return $"{Name} : {description_} , 수량 : {amt}";
         }
+
+        public virtual IItem DeepCopy()
+        {
+            return null;
+        }
     }
     public class HealthPotion : Consumable
     {
@@ -61,6 +68,11 @@ namespace _4weekProject
             player.Health += 20;
             return true;
         }
+
+        public override IItem DeepCopy()
+        {
+            return new HealthPotion();
+        }
     }
 
     public class StrengthPotion : Consumable
@@ -80,6 +92,11 @@ namespace _4weekProject
             amt--;
             player.Attack += 1;
             return true;
+        }
+
+        public override IItem DeepCopy()
+        {
+            return new StrengthPotion();
         }
     }
     public class Equipment : IItem
@@ -132,20 +149,35 @@ namespace _4weekProject
         {
             return $"{Name} : 구매 가격: {buyPrice} , 판매 가격: {sellPrice} , 공격력: {attackBonus} , 방어력: {defenseBonus}";
         }
+
+        public virtual IItem DeepCopy()
+        {
+            return null;
+        }
     }
     public class Weapon : Equipment
     {
         //부모(Equipment) 생성자 호출
-        public Weapon(string name, int buy, int atk, int def, EquipmentType equipType) : base(name, buy, atk, def, equipType)
+        public Weapon(string name, double buy, int atk, int def, EquipmentType equipType) : base(name, buy, atk, def, equipType)
         {
+        }
+
+        public override IItem DeepCopy()
+        {
+            return new Weapon(this.Name, this.buyPrice, this.attackBonus, this.defenseBonus, this.equipType);
         }
     }
 
     public class Armour : Equipment
     {
         //부모(Equipment) 생성자 호출
-        public Armour(string name, int buy, int atk, int def, EquipmentType equipType) : base(name, buy, atk, def, equipType)
+        public Armour(string name, double buy, int atk, int def, EquipmentType equipType) : base(name, buy, atk, def, equipType)
         {
+        }
+
+        public override IItem DeepCopy()
+        {
+            return new Armour(this.Name, this.buyPrice, this.attackBonus, this.defenseBonus, this.equipType);
         }
     }
 }

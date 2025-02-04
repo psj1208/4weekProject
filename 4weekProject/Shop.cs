@@ -4,20 +4,19 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static GlobalData;
 
 namespace _4weekProject
 {
     public class Shop
     {
         Player player;
-        ItemDataBase itemData;
 
         public Shop() { }
 
-        public Shop(Player p, ItemDataBase idb)
+        public Shop(Player p)
         {
             player = p;
-            itemData = idb;
         }
 
         public void ShowShop()
@@ -25,12 +24,13 @@ namespace _4weekProject
             while (true)
             {
                 int totallength = 0;
-                int count = itemData.ShopDataBase.Count;
+                int count = ItemDataBase.ShopDataBase.Count;
                 (int left, int top) point;
                 Text.SaveStartPos();
                 Text.TextingLine(" 상점 !");
+                Thread.Sleep(Waitingtime);
                 Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
-                for (int i = 0; i < itemData.ShopDataBase.Count; i++)
+                for (int i = 0; i < ItemDataBase.ShopDataBase.Count; i++)
                 {
                     switch(i)
                     {
@@ -47,13 +47,13 @@ namespace _4weekProject
                             break;
 
                     };
-                    for (int a = 0; a < itemData.ShopDataBase[i].Count; a++)
+                    for (int a = 0; a < ItemDataBase.ShopDataBase[i].Count; a++)
                     {
-                        Text.TextingLine($"{count * i + a + 1} . {itemData.ShopDataBase[i][a].description()}", ConsoleColor.Green, false);
+                        Text.TextingLine($"{count * i + a + 1} . {ItemDataBase.ShopDataBase[i][a].description()}", ConsoleColor.Green, false);
                         totallength++;
                     }
                 }
-                Text.TextingLine($"{totallength + 1} . 휴식 (50원) : 체력을 50% 회복시켜준다.", ConsoleColor.Green);
+                Text.TextingLine($"{totallength + 1} . 휴식 (50원) : 체력을 50% 회복시켜준다.", ConsoleColor.Green, false);
                 Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
                 Text.TextingLine("아이템 구입은 해당 번호를, 나가시려면 0을 입력해주세요.", ConsoleColor.Green);
                 int input = Text.GetInput(null, Number.Make(0, totallength + 1));
@@ -79,7 +79,7 @@ namespace _4weekProject
                 }
                 else
                 {
-                    IItem selectitem = itemData.ShopDataBase[input / count][input % count];
+                    IItem selectitem = ItemDataBase.ShopDataBase[input / count][input % count].DeepCopy();
                     if (player.Gold >= selectitem.buyPrice)
                     {
                         player.Gold -= (int)selectitem.buyPrice;

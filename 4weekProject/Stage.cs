@@ -1,4 +1,5 @@
-﻿using System;
+﻿using _4weekProject;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,10 +8,31 @@ using System.Xml.Schema;
 
 namespace _4weekProject
 {
-    public struct Randomize
+    public struct RandomBetween
     {
-        int start;
-        int end;
+        public int start;
+        public int end;
+
+        public RandomBetween(int x,int y)
+        {
+            start = x;
+            end = y;
+        }
+    }
+    public static class Randomize
+    {
+        public static int Makenum(RandomBetween random)
+        {
+            Random rand = new Random();
+            return rand.Next(random.start, random.end + 1);
+        }
+
+        public static void RandomGain(Player player,IItem item,int per)
+        {
+            Random rand = new Random();
+            if (rand.Next(0, 101) <= per) 
+                player.GainItem(item);
+        }
     }
     public struct StageSpawn
     {
@@ -27,28 +49,89 @@ namespace _4weekProject
         }
     }
 
+    public static class StageClear
+    {
+        public static List<Action<Player>> ClearMethod = new List<Action<Player>>
+        {
+            Clear1,
+            Clear2,
+            Clear3
+        };
+         static void Clear1(Player player)
+        {
+            player.GainGold(Randomize.Makenum(new RandomBetween(20, 50)));
+            Randomize.RandomGain(player, ItemDataBase.WeaponList[0], 20);
+            Randomize.RandomGain(player, ItemDataBase.ArmourList[0], 20);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[0], 40);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[1], 5);
+        }
+        static void Clear2(Player player)
+        {
+            player.GainGold(Randomize.Makenum(new RandomBetween(40, 70)));
+            Randomize.RandomGain(player, ItemDataBase.WeaponList[1], 20);
+            Randomize.RandomGain(player, ItemDataBase.ArmourList[1], 20);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[0], 50);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[0], 50);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[1], 8);
+        }
+
+        static void Clear3(Player player)
+        {
+            player.GainGold(Randomize.Makenum(new RandomBetween(60, 90)));
+            Randomize.RandomGain(player, ItemDataBase.WeaponList[2], 20);
+            Randomize.RandomGain(player, ItemDataBase.ArmourList[2], 20);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[0], 50);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[0], 50);
+            Randomize.RandomGain(player, ItemDataBase.ConsumeList[1], 10);
+        }
+    }
+    public class StageDB
+    {
+        public static List<Stage> stageList = new List<Stage>
+        {
+            new Stage(3,new StageSpawn(MonsterDB.goblin,10),
+                new StageSpawn(MonsterDB.wolf,10),
+                new StageSpawn(MonsterDB.bat,10)),
+            new Stage(5,new StageSpawn(MonsterDB.goblin,10),
+                new StageSpawn(MonsterDB.wolf,10),
+                new StageSpawn(MonsterDB.slime, 10),
+                new StageSpawn(MonsterDB.Rare_1, 1)),
+            new Stage(7, new StageSpawn(MonsterDB.goblin, 10),
+                new StageSpawn(MonsterDB.slime, 10),
+                new StageSpawn(MonsterDB.wolf, 10),
+                new StageSpawn(MonsterDB.Cow, 5),
+                new StageSpawn(MonsterDB.Rare_1,2)),
+            new Stage(9, new StageSpawn(MonsterDB.wolf,10),
+                new StageSpawn(MonsterDB.slime,10),
+                new StageSpawn(MonsterDB.wolf,5),
+                new StageSpawn(MonsterDB.Cow,2),
+                new StageSpawn(MonsterDB.Rare_1,3),
+                new StageSpawn(MonsterDB.dragon,5))
+        };
+    }
+
+    public static class MonsterDB
+    {
+        public static Monster goblin = new Monster("고블린", 30, new RandomBetween(4, 6), 6, new RandomBetween(5, 15));
+        public static Monster bat = new Monster("박쥐", 10, new RandomBetween(3,4), 3, new RandomBetween(3,8));
+        public static Monster wolf = new Monster("늑대", 20, new RandomBetween(6,9), 8, new RandomBetween(8,17));
+        public static Monster slime = new Monster("슬라임", 35, new RandomBetween(5,7), 10, new RandomBetween(10, 14));
+        public static Monster Cow = new Monster("카우 킹", 50, new RandomBetween(10, 14), 20, new RandomBetween(20, 30));
+        public static Monster Rare_1 = new Monster("황금 고블린", 1, new RandomBetween(1, 1), 30, new RandomBetween(1, 300));
+        public static Monster dragon = new Monster("드래곤", 100, new RandomBetween(15, 25), 100, new RandomBetween(50, 100));
+    }
     public class Stage
     {
-        List<StageSpawn> monsters = new List<StageSpawn>();
+        public List<StageSpawn> monsters = new List<StageSpawn>();
         public int length { get; set; }
-        Monster goblin = new Monster("고블린", 30, 5, 5);
-        Monster bat = new Monster("박쥐", 10, 3, 3);
-        Monster wolf = new Monster("늑대", 20, 8, 7);
         int totalProb;
 
-        public Stage(int i = 0)
+        public Stage(int leng = 0, params StageSpawn[] spawn)
         {
-            monsters.Clear();
-            switch(i)
+            length = leng;
+            foreach(var s in spawn)
             {
-                case 1:
-                    monsters.Add(new StageSpawn(goblin,10));
-                    monsters.Add(new StageSpawn(bat, 10));
-                    monsters.Add(new StageSpawn(wolf, 10));
-                    length = 3;
-                    break;
-                default:
-                    break;
+                monsters.Add(s);
             }
             SetTotalProb();
         }

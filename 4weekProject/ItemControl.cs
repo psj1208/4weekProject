@@ -8,6 +8,7 @@ using static GlobalData;
 
 namespace _4weekProject
 {
+    //아이템 클래스 관련
     public interface IItem
     {
         string Name { get; set; }

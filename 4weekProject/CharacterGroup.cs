@@ -9,6 +9,7 @@ using static GlobalData;
 
 namespace _4weekProject
 {
+    //캐릭터 관련(몬스터,플레이어,인벤토리)
     public interface ICharacter
     {
         string Name { get; set; }

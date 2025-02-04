@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace _4weekProject
 {
+    //아이템을 넣어 놓은 데이터베이스(상점 아이템 목록 포함)
     public class ItemDataBase
     {
         static public List<IItem> DataBase;

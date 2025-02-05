@@ -9,7 +9,7 @@ namespace _4weekProject
     //아이템을 넣어 놓은 데이터베이스(상점 아이템 목록 포함)
     public static class ItemDataBase
     {
-        //SQL 이용하려고 했는데 굳이 필요없을 것 같아서 방치된 데이터베이스
+        //SQL 이용하려고 했는데 굳이 필요없을 것 같아서 방치된 리스트
         static public List<IItem> DataBase;
         //상점 리스트. 지금은 아이템이 많지 않아서 그냥 전부 넣어둠.
         static public List<List<IItem>> ShopDataBase;

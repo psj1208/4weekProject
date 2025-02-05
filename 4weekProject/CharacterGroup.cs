@@ -31,13 +31,14 @@ namespace _4weekProject
         public int Health { get; set; }
         public int Attack { get; set; }
 
-        RandomBetween Attack_;
+        RandomBetween Attack_;//공격력을 랜덤한 값으로 돌려주기 위함. 같은 형식으로 플레이어에게도 적용은 할 수 있다.
         public bool IsDead { get; set; }
         public int Exp;
-        RandomBetween goldrandom;
+        RandomBetween goldrandom;//드롭하는 돈의 양을 랜덤으로 정하기 위함.
         public int gold;
         public CharacterType type { get; set; } = CharacterType.Monster;
 
+        //생성자
         public Monster(string name, int hp, RandomBetween atk, int exp,RandomBetween drop)
         {
             Name = name;
@@ -48,7 +49,7 @@ namespace _4weekProject
             goldrandom = drop;
             gold = Randomize.Makenum(goldrandom);
         }
-
+        //데미지 받기.상대방의 Attack메서드에 넣어 코드를 간결화.
         public void TakeDamage(int damage)
         {
             Health -= damage;
@@ -61,19 +62,22 @@ namespace _4weekProject
                 Text.TextingLine($"{Name}이 {damage}피해를 받았습니다!", ConsoleColor.Magenta, false);
         }
 
+        //0이하(죽음) 일시 true를 반환 아니면 false를 반환
         public bool Dead()
         {
-            return Health < 0 ? true : false;
+            return Health <= 0 ? true : false;
         }
-
+        
+        //적 공격
         public void AttackEnemy(ICharacter cha)
         {
             Text.TextingLine($"{Name}이 {cha.Name}을 공격했습니다!", ConsoleColor.Red, false);
             Attack = Randomize.Makenum(Attack_);
+            //여기서 사용.TakeDamage
             cha.TakeDamage(Attack);
             Console.WriteLine();
         }
-
+        //클래스는 주소값을 전달하기에 복사하여 새로운 객체를 추가하려면 따로 짜야된다.(ex.상점에서 구입하여 인벤에 들어가는 경우)
         public Monster GetCopy()
         {
             return new Monster(this.Name, this.Health, this.Attack_, this.Exp, this.goldrandom);
@@ -93,14 +97,18 @@ namespace _4weekProject
 
         public int exp;
 
+        //현재 무기
         public Equipment curWeapon;
+        //현재 방어구
         public Equipment curArmour;
 
+        //inven이 세이브로드에서 오류를 일으켜 jsonignoret선언을 통해 세이브 방지. 플레이어의 인벤토리이다.
         [JsonIgnore]
         public Inventory inven;
         public bool IsDead { get; set; }
         public CharacterType type { get; set; } = CharacterType.Player;
 
+        //생성자
         public Player()
         {
 
@@ -114,6 +122,7 @@ namespace _4weekProject
             Attack = attack;
             this.defense = defense;
             Gold = gold;
+            //생성자와 동시에 인벤토리 생성 후 플레이어의 inven 변수에 할당.
             inven = new Inventory(this);
             IsDead = false;
             Text.TextingLine($"환영합니다. {Name} 님");
@@ -125,6 +134,7 @@ namespace _4weekProject
             Gold += a;
             Text.TextingLine($"{a} 골드를 얻었습니다.", ConsoleColor.Yellow);
         }
+        //데미지 피격 및 사망 여부 확인
         public void TakeDamage(int damage)
         {
             damage -= defense;
@@ -276,11 +286,12 @@ namespace _4weekProject
             player = p;
         }
 
-        //외부 클래스에서 호출용
+        //외부 클래스에서 호출용. 인벤토리 아이템의 종류의 수
         public int ReturnLength()
         {
             return items.Count;
         }
+        //인벤토리 조작
         public void ShowInventory()
         {
             while (true)
@@ -304,7 +315,7 @@ namespace _4weekProject
             }
         }
 
-        //인벤토리 출력
+        //인벤토리 화면 출력
         public void InvenInfo()
         {
             Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
@@ -325,6 +336,7 @@ namespace _4weekProject
             }
             return -1;
         }
+        //아이템 추가. Player의 AddInven에 사용되있음.
         public void AddItem(IItem item)
         {
             //소비품일 시
@@ -349,6 +361,7 @@ namespace _4weekProject
             }
         }
 
+        //장비 판매.Shop클래스에서 호출해서 사용함.
         public void SellItem(int num)
         {
             Text.TextingLine($"{items[num].Name} 을 판매하셨습니다.");
@@ -368,6 +381,7 @@ namespace _4weekProject
                 items.Remove(items[num]);
             }
         }
+        //아이템 사용
         public void UseItem(int num)
         {
             //인벤토리에서 품목은 1부터 시작하기에 1을 빼야함.

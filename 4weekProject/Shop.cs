@@ -89,7 +89,7 @@ namespace _4weekProject
                 //휴식 제외 다른 물품 구매
                 else
                 {
-                    IItem selectitem = ItemDataBase.ShopDataBase[input / count][input % count].DeepCopy();
+                    IItem selectitem = ItemDataBase.ShopDataBase[input / count][input % count].DeepCopy();//shopdatabase는 배열을 담은 배열. 즉 이중배열이라 종류 수를 이용해서 적당히 수식을 짠다
                     if (player.Gold >= selectitem.buyPrice)
                     {
                         player.Gold -= (int)selectitem.buyPrice;

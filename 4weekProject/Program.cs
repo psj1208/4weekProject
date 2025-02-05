@@ -59,11 +59,14 @@ namespace _4weekProject
     
     class Program
     {
+        //static으로 선언안할려햇는데, 세이브 로드 기능 구현하다보니.. 바꿔보셔도 됨.
+        //세이브 로드 저장 용 경로. 이 프로젝트의 상위 폴더.
         public static string path = AppDomain.CurrentDomain.BaseDirectory;
         static SceneType curSceneType = SceneType.Lobby;
         static Player player = new Player();
         static Stage stage = new Stage();
         static Shop shop;
+        //메인문
         static void Main(string[] args)
         {
             GameStart();
@@ -83,6 +86,7 @@ namespace _4weekProject
                 {
                     int input_start = Text.GetInput("1 . 새로하기\n2 . 불러오기", 1, 2);
                     Console.Clear();
+                    //불러오기 시 로딩하도록 플레이어 클래스 초기화 후 로딩.
                     if (input_start == 2)
                     {
                         player = new Player();
@@ -92,7 +96,7 @@ namespace _4weekProject
                     {
                         string name = Text.GetInput("이름을 정해주세요.");
                         player = new Player(name);
-                        //디버깅 코드
+                        //디버깅 코드(버그 일어나는지 안 일어나는지 볼려고 인벤에 강제로 추가함. 신경쓰지마셈)
                         player.inven.AddItem(ItemDataBase.ShopDataBase[0][0].DeepCopy());
                         player.inven.AddItem(ItemDataBase.ShopDataBase[0][1].DeepCopy());
                         player.inven.AddItem(new HealthPotion().DeepCopy());
@@ -105,7 +109,7 @@ namespace _4weekProject
                     //씬 이동. 타입을 마을로.
                     curSceneType = SceneType.Home;
                 }
-                //게임 시작 후 마을로
+                //마을로
                 else if (curSceneType == SceneType.Home)
                 {
                     Console.Clear();
@@ -173,6 +177,7 @@ namespace _4weekProject
                                 //씬타입을 모험으로
                                 curSceneType = SceneType.Explore;
                                 break;
+                            //저장 기능
                             case 5:
                                 Save();
                                 Text.TextingLine("저장되었습니다!", ConsoleColor.Green);
@@ -207,6 +212,7 @@ namespace _4weekProject
                         Text.TextingLine("1 . 도망간다.", ConsoleColor.Green);
                         Text.SaveEndPos();
                         int input = Text.GetInput(null, 0, 1);
+                        //연출
                         if(input == 0)
                         {
                             Text.Texting(" 전 ", ConsoleColor.Red);
@@ -214,6 +220,7 @@ namespace _4weekProject
                             Text.Texting(" 투 ", ConsoleColor.Red);
                             Thread.Sleep(1000);
                         }
+                        //연출22
                         else
                         {
                             Text.Texting(" 귀 ", ConsoleColor.Green);
@@ -272,6 +279,7 @@ namespace _4weekProject
                                     Console.WriteLine("\n");
                                     Text.TextingLine(" 보 상 ", ConsoleColor.Yellow);
                                     Console.WriteLine("\n");
+                                    //스테이지 클리어 함수를 담아둔 배열에서 꺼내와서 player에게 적용.
                                     StageClear.ClearMethod[Curstage](player);
                                 }
                                 Text.TextingLine(" 0 . 다음 ", ConsoleColor.Green);
@@ -322,22 +330,28 @@ namespace _4weekProject
         //세이브 기능. 상속받은 정보까지 가져가기 위해 All로 지정.
         static void Save()
         {
+            //player 클래스 저장(TypeNameHandling을 All로 설정하면 무슨 클래스를 상속받고 있는 지도 저장이 됨. 다만 문제를 일으킬 수 있으니 주의. 별다른 설정이 없으면
+            //무엇을 상속받고 있는 지는 저장이 안 된다. 로드해서 맞는 형태로 가져올 때 문제 생김.ex)Item형태로 불렀는데 상속 정보가 날아가 해당 클래스가 Item의 하위 클래스가 아니게 됨. 못 가져옴.
             string userdata = JsonConvert.SerializeObject(player, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.All
             });
+            //경로 설정 후 저장. 상위 폴더의 bin/Debug/해당 net 폴더 안에 들어가 있을 것이다.
             File.WriteAllText(path + "\\UserData.json", userdata);
-
+            
+            //원래는 inven 자체를 저장하려 했는데, 버그가 많이 발생해서 갖고있는 아이템이 저장되있는 inven의 items배열을 저장해보기로 함.
             string inventorydata = JsonConvert.SerializeObject(player.inven.items, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.All
             });
+            //경로 설정 후 저장. 상위 폴더의 bin/Debug/해당 net 폴더 안에 들어가 있을 것이다.
             File.WriteAllText(path + "\\InvenData.json", inventorydata);
         }
 
         //로드 기능.
         static void Load()
         {
+            //해당 경로에 파일이 없을 시 인벤만 초기화하고 보냄.
             if (!File.Exists(path + "\\UserData.json"))
             {
                 player.inven.items = new List<IItem>();
@@ -345,22 +359,26 @@ namespace _4weekProject
             }
             else
             {
+                //같은 방식으로 All형태로 가져온다.
+                //경로 설정 후 읽어오기.
                 string userLData = File.ReadAllText(path + "\\UserData.json");
                 Player? userLoadData = JsonConvert.DeserializeObject<Player>(userLData, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.All
                 });
                 player = userLoadData;
-
+                //경로 설정 후 읽어오기.
                 string invenLData = File.ReadAllText(path + "\\InvenData.json");
                 List<IItem>? invenLoadData = JsonConvert.DeserializeObject<List<IItem>>(invenLData, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.All
                 });
+                //인벤이 없으면 새로 만들기.(버그 예방)
                 if (player.inven == null)
                 {
                     player.inven = new Inventory(player);
                 }
+                //인벤토리의 items배열에 저장되있던 아이템들을 추가.
                 foreach (IItem data in invenLoadData)
                 {
                     player.inven.AddItem(data);

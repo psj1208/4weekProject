@@ -41,7 +41,9 @@ namespace _4weekProject
     //몬스터와 몬스터 조우 확률
     public struct StageSpawn
     {
+        //몬스터 객체
         public Monster monster { get; set; }
+        //확률
         public int prob { get; set; }
 
         public int curProb { get; set; }

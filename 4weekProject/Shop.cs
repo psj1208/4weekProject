@@ -101,5 +101,24 @@ namespace _4weekProject
                 }
             }
         }
+        public void ShowSelling()
+        {
+            while (true)
+            {
+                player.inven.InvenInfo();
+                int input = Text.GetInput("나가시려면 0을 입력 \n아니면 판매할 아이템의 번호를 입력해주세요.", Number.Make(0, player.inven.ReturnLength()));
+                input--;
+                if (input != -1)
+                {
+                    player.inven.SellItem(input);
+                    Thread.Sleep(Waitingtime);
+                    Console.Clear();
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
     }
 }

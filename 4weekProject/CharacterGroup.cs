@@ -257,6 +257,12 @@ namespace _4weekProject
             items = new List<IItem>();
             player = p;
         }
+
+        //외부 클래스에서 호출용
+        public int ReturnLength()
+        {
+            return items.Count;
+        }
         public void ShowInventory()
         {
             while (true)
@@ -265,12 +271,7 @@ namespace _4weekProject
                 Text.SaveStartPos();
                 Text.TextingLine("플레이어 인벤토리");
                 Thread.Sleep(Waitingtime);
-                Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
-                for (int i = 0; i < items.Count; i++)
-                {
-                    Text.TextingLine($"{i + 1} . {items[i].description()}", ConsoleColor.Green, false);
-                }
-                Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
+                InvenInfo();
                 Text.TextingLine("아이템 사용은 해당 번호를, 나가시려면 0을 입력해주세요.", ConsoleColor.Green);
                 int input = Text.GetInput(null, Number.Make(0, items.Count));
                 Text.SaveEndPos();
@@ -283,6 +284,17 @@ namespace _4weekProject
                     Console.Clear();
                 }
             }
+        }
+
+        //인벤토리 출력
+        public void InvenInfo()
+        {
+            Text.TextingLine("-------------------------------------------------------\n", ConsoleColor.Red, false);
+            for (int i = 0; i < items.Count; i++)
+            {
+                Text.TextingLine($"{i + 1} . {items[i].description()}", ConsoleColor.Green, false);
+            }
+            Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
         }
 
         //찾는 아이템의 이름을 대조해서 인벤토리의 아이템의 인덱스를 반환
@@ -317,7 +329,26 @@ namespace _4weekProject
             {
                 items.Add(item);
             }
+        }
 
+        public void SellItem(int num)
+        {
+            Text.TextingLine($"{items[num].Name} 을 판매하셨습니다.");
+            player.GainGold((int)items[num].sellPrice);
+            //소모품은 수량을 줄이고 0이하가 되면 제거.
+            if (items[num] is Consumable) 
+            {
+                items[num].amt--;
+                if (items[num].amt <= 0)
+                {
+                    items.Remove(items[num]);
+                }
+            }
+            //장비품은 수량이 없으니 그냥 제거.
+            else
+            {
+                items.Remove(items[num]);
+            }
         }
         public void UseItem(int num)
         {

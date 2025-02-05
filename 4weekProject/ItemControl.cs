@@ -46,7 +46,7 @@ namespace _4weekProject
         }
         public string description()
         {
-            return $"{Name} : {description_} , 수량 : {amt}";
+            return $"{Name} : {description_} , 구매 가격 : {buyPrice} , 판매 가격 : {sellPrice} , 수량 : {amt}";
         }
 
         public virtual IItem DeepCopy()

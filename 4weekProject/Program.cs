@@ -127,7 +127,12 @@ namespace _4weekProject
                             //상점
                             case 3:
                                 Console.Clear();
-                                shop.ShowShop();
+                                input = Text.GetInput("\n\n1. 구매를 원합니다.\n\n2. 판매를 원합니다.", 1, 2);
+                                Console.Clear();
+                                if(input == 1)
+                                    shop.ShowShop();
+                                if (input == 2)
+                                    shop.ShowSelling();
                                 Console.Clear();
                                 break;
                             //스테이지 선택

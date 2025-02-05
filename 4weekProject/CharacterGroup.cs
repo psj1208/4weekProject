@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -90,33 +91,34 @@ namespace _4weekProject
         public int defense { get; set; }
         public int Gold { get; set; }
 
-        private int exp;
+        public int exp;
 
-        private IItem curWeapon;
-        private IItem curArmour;
+        public Equipment curWeapon;
+        public Equipment curArmour;
 
+        [JsonIgnore]
         public Inventory inven;
         public bool IsDead { get; set; }
         public CharacterType type { get; set; } = CharacterType.Player;
 
         public Player()
         {
+
         }
-        public Player(string name)
+        public Player(string name, int health = 200, int defense = 0, int attack = 10, int gold = 50)
         {
             level = 1;
             Name = name;
-            maxHealth = 100;
-            Health = 100;
-            Attack = 10;
-            defense = 0;
-            Gold = 50;
-            IsDead = false;
+            maxHealth = 100 + HealthPerLevel * level;
+            Health = health;
+            Attack = attack;
+            this.defense = defense;
+            Gold = gold;
             inven = new Inventory(this);
+            IsDead = false;
             Text.TextingLine($"환영합니다. {Name} 님");
             Thread.Sleep(1000);
         }
-
         //골드 흭득 및 알람
         public void GainGold(int a)
         {
@@ -168,6 +170,21 @@ namespace _4weekProject
             Text.TextingLine($"방어력. {defense}", ConsoleColor.Magenta, false);
             Text.TextingLine($"돈. {Gold}", ConsoleColor.Yellow, false);
             Text.TextingLine($"경험치. {exp}", ConsoleColor.Blue, false);
+            Console.WriteLine();
+            string weapon;
+            if (curWeapon != null)
+                weapon = curWeapon.Name;
+            else
+                weapon = "없음";
+            Text.TextingLine($"현재 무기. {weapon} ");
+            Console.WriteLine();
+            string armour;
+            if (curArmour != null)
+                armour = curArmour.Name;
+            else
+                armour = "없음";
+            Text.TextingLine($"현재 무기. {armour} ");
+            Console.WriteLine();
             Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
             Text.SaveEndPos();
             Text.Texting("\n\n");
@@ -203,7 +220,7 @@ namespace _4weekProject
         }
 
         //아이템 장착 및 알람
-        public bool Equip(IItem item)
+        public bool Equip(Equipment item)
         {
             //무기의 경우
             if (item is Weapon)
@@ -249,6 +266,7 @@ namespace _4weekProject
     public class Inventory
     {
         public List<IItem> items;
+        [JsonIgnore]
         public Player player;
 
         //플레이어를 매개변수로 받음으로써 플레이어에게 귀속.
@@ -310,13 +328,13 @@ namespace _4weekProject
         public void AddItem(IItem item)
         {
             //소비품일 시
-            if (item is Consumable)
+            if (item.type == ItemType.Consumable)
             {
                 int find = SearchItem(item.Name);
                 //같은 품목을 찾지 못함
                 if (find == -1)
                 {
-                    items.Add(item);
+                    items.Add((IItem)item);
                 }
                 //같은 품목을 찾을 시 수량을 증가
                 else

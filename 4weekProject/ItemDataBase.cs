@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace _4weekProject
 {
     //아이템을 넣어 놓은 데이터베이스(상점 아이템 목록 포함)
-    public class ItemDataBase
+    public static class ItemDataBase
     {
         //SQL 이용하려고 했는데 굳이 필요없을 것 같아서 방치된 데이터베이스
         static public List<IItem> DataBase;
@@ -17,7 +17,7 @@ namespace _4weekProject
         static public List<IItem> WeaponList;
         //방어구
         static public List<IItem> ArmourList;
-        //소비품류
+        //소비품류  
         static public List<IItem> ConsumeList;
         //무기류
         static IItem weapon_1 = new Weapon("부러진 직검", 100, 5, 0, EquipmentType.weapon);

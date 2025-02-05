@@ -3,8 +3,10 @@ using System.Drawing;
 using System.Net.Security;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Newtonsoft.Json;
 using static GlobalData;
 
 namespace _4weekProject
@@ -57,6 +59,11 @@ namespace _4weekProject
     
     class Program
     {
+        public static string path = AppDomain.CurrentDomain.BaseDirectory;
+        static SceneType curSceneType = SceneType.Lobby;
+        static Player player = new Player();
+        static Stage stage = new Stage();
+        static Shop shop;
         static void Main(string[] args)
         {
             GameStart();
@@ -64,10 +71,6 @@ namespace _4weekProject
 
         static void GameStart()
         {
-            SceneType curSceneType = SceneType.Lobby;
-            Player player = new Player();
-            Stage stage = new Stage();
-            Shop shop = new Shop();
             //게임 종료 구분 여부
             bool gameexit = false;
             //진행할 스테이지의 단계를 담아둘 변수
@@ -78,17 +81,25 @@ namespace _4weekProject
                 //로비(시작 시)
                 if (curSceneType == SceneType.Lobby)
                 {
+                    int input_start = Text.GetInput("1 . 새로하기\n2 . 불러오기", 1, 2);
                     Console.Clear();
-                    string name = Text.GetInput("이름을 정해주세요.");
-                    player = new Player(name);
+                    if (input_start == 2)
+                    {
+                        player = new Player();
+                        Load();
+                    }
+                    else
+                    {
+                        string name = Text.GetInput("이름을 정해주세요.");
+                        player = new Player(name);
+                        //디버깅 코드
+                        player.inven.AddItem(ItemDataBase.ShopDataBase[0][0].DeepCopy());
+                        player.inven.AddItem(ItemDataBase.ShopDataBase[0][1].DeepCopy());
+                        player.inven.AddItem(new HealthPotion().DeepCopy());
+                        player.inven.AddItem(new HealthPotion().DeepCopy());
+                        player.inven.AddItem(new HealthPotion().DeepCopy());
+                    }
                     shop = new Shop(player);
-                    //디버깅 코드
-                    player.Health = 10;
-                    player.inven.AddItem(ItemDataBase.ShopDataBase[0][0].DeepCopy());
-                    player.inven.AddItem(ItemDataBase.ShopDataBase[0][1].DeepCopy());
-                    player.inven.AddItem(new HealthPotion().DeepCopy());
-                    player.inven.AddItem(new HealthPotion().DeepCopy());
-                    player.inven.AddItem(new HealthPotion().DeepCopy());
                     Text.TextingLine("마을로 입장하겠습니다. 조금만 기다려주세요");
                     Counting(3);
                     //씬 이동. 타입을 마을로.
@@ -106,7 +117,8 @@ namespace _4weekProject
                         Text.TextingLine("2 . 인벤토리\n", ConsoleColor.Green, false);
                         Text.TextingLine("3 . 상점\n", ConsoleColor.Green, false);
                         Text.TextingLine("4 . 던전으로\n", ConsoleColor.Green, false);
-                        int input = Text.GetInput(null, 1, 2, 3, 4);
+                        Text.TextingLine("5. 세이브\n", ConsoleColor.Green, false);
+                        int input = Text.GetInput(null, 1, 2, 3, 4, 5);
                         switch (input)
                         {
                             //상태 보기
@@ -154,12 +166,16 @@ namespace _4weekProject
                                 input = Text.GetInput("해당 스테이지 번호를 입력해주세요", Number.Make(1,StageDB.stageList.Count));
                                 //스테이지 설정을 불러오기 위한 데이터베이스 접근
                                 stage = StageDB.stageList[input-1];
-                                Text.TextingLine($"스테이지 {input}으로 이동합니다.");
+                                Text.TextingLine($"스테이지 {input}으로 이동합니다.", ConsoleColor.Green);
                                 //스테이지 단계 저장(클리어 보수를 구분하기 위함)
                                 Curstage = input - 1;
                                 Counting(3);
                                 //씬타입을 모험으로
                                 curSceneType = SceneType.Explore;
+                                break;
+                            case 5:
+                                Save();
+                                Text.TextingLine("저장되었습니다!", ConsoleColor.Green);
                                 break;
                             default:
                                 break;
@@ -300,6 +316,58 @@ namespace _4weekProject
             {
                 Console.Write(num - i + "   ");
                 Thread.Sleep(1000);
+            }
+        }
+
+        //세이브 기능. 상속받은 정보까지 가져가기 위해 All로 지정.
+        static void Save()
+        {
+            string userdata = JsonConvert.SerializeObject(player, new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
+            File.WriteAllText(path + "\\UserData.json", userdata);
+
+            string inventorydata = JsonConvert.SerializeObject(player.inven.items, new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
+            File.WriteAllText(path + "\\InvenData.json", inventorydata);
+        }
+
+        //로드 기능.
+        static void Load()
+        {
+            if (!File.Exists(path + "\\UserData.json"))
+            {
+                player.inven.items = new List<IItem>();
+                return;
+            }
+            else
+            {
+                string userLData = File.ReadAllText(path + "\\UserData.json");
+                Player? userLoadData = JsonConvert.DeserializeObject<Player>(userLData, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.All
+                });
+                player = userLoadData;
+
+                string invenLData = File.ReadAllText(path + "\\InvenData.json");
+                List<IItem>? invenLoadData = JsonConvert.DeserializeObject<List<IItem>>(invenLData, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.All
+                });
+                if (player.inven == null)
+                {
+                    player.inven = new Inventory(player);
+                }
+                foreach (IItem data in invenLoadData)
+                {
+                    player.inven.AddItem(data);
+                }
+                Text.TextingLine("로드 성공.");
+                Thread.Sleep(Waitingtime);
+                Console.Clear();
             }
         }
     }

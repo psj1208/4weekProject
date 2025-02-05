@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -9,7 +10,7 @@ using static GlobalData;
 namespace _4weekProject
 {
     //아이템 클래스 관련
-    public interface IItem
+    public interface IItem_base
     {
         string Name { get; set; }
         ItemType type { get; set; }
@@ -24,16 +25,34 @@ namespace _4weekProject
         string description();
 
         //상점에 있는 아이템을 매개변수로 주게 되면 클래스는 주소값이 넘어가기 때문에 카피본이 필요함.
-        IItem DeepCopy();
+    }
+
+    public class IItem : IItem_base
+    {
+        public virtual string Name { get; set; }
+        public virtual ItemType type { get; set; }
+        public virtual double buyPrice { get; set; }
+        public virtual double sellPrice { get; set; }
+        public virtual int amt { get; set; }
+
+        //사용 시 or 장착 시
+        public virtual bool Use(Player player) { return true; ; }
+        //장착 해제 시
+        public virtual void UnUse(Player player) { }
+        //아이템 설명 출력용.
+        public virtual string description() { return null; }
+
+        //상점에 있는 아이템을 매개변수로 주게 되면 클래스는 주소값이 넘어가기 때문에 카피본이 필요함.
+        public virtual IItem DeepCopy() { return null; }
     }
 
     public class Consumable : IItem
     {
-        public string Name { get; set; }
-        public double buyPrice { get; set; }
-        public double sellPrice { get; set; }
-        public int amt { get; set; }
-        public ItemType type { get; set; }
+        public override string Name { get; set; }
+        public override double buyPrice { get; set; }
+        public override double sellPrice { get; set; }
+        public override int amt { get; set; }
+        public override ItemType type { get; set; }
 
         public string description_ { get; set; }
         public virtual bool Use(Player player)
@@ -41,17 +60,12 @@ namespace _4weekProject
             return false;
         }
 
-        public void UnUse(Player player)
+        public virtual void UnUse(Player player)
         {
         }
-        public string description()
+        public override string description()
         {
             return $"{Name} : {description_} , 구매 가격 : {buyPrice} , 판매 가격 : {sellPrice} , 수량 : {amt}";
-        }
-
-        public virtual IItem DeepCopy()
-        {
-            return null;
         }
     }
     public class HealthPotion : Consumable
@@ -107,12 +121,12 @@ namespace _4weekProject
     public class Equipment : IItem
     {
         //이름,구매가격,판매가격,공격력,방어력
-        public string Name { get; set; }
-        public double buyPrice { get; set; }
-        public double sellPrice { get; set; }
+        public override string Name { get; set; }
+        public override double buyPrice { get; set; }
+        public override double sellPrice { get; set; }
         public int attackBonus;
         public int defenseBonus;
-        public int amt { get; set; }
+        public override int amt { get; set; }
         public ItemType type { get; set; }
         public void Plusamt(int i) { }
         public EquipmentType equipType;
@@ -128,7 +142,7 @@ namespace _4weekProject
             this.equipType = equipType;
         }
 
-        public bool Use(Player player)
+        public override bool Use(Player player)
         {
             if (player.Equip(this))
             {
@@ -144,18 +158,18 @@ namespace _4weekProject
             }
         }
 
-        public void UnUse(Player player)
+        public override void UnUse(Player player)
         {
             player.Attack -= attackBonus;
             player.defense -= defenseBonus;
         }
 
-        public string description()
+        public override string description()
         {
             return $"{Name} : 구매 가격: {buyPrice} , 판매 가격: {sellPrice} , 공격력: {attackBonus} , 방어력: {defenseBonus}";
         }
 
-        public virtual IItem DeepCopy()
+        public override IItem DeepCopy()
         {
             return null;
         }

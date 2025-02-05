@@ -101,6 +101,7 @@ namespace _4weekProject
                 }
             }
         }
+        //판매 메서드.
         public void ShowSelling()
         {
             while (true)

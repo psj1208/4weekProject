@@ -16,10 +16,14 @@ namespace _4weekProject
         double buyPrice { get; set; }
         double sellPrice { get; set; }
         int amt { get; set; }
+        //사용 시 or 장착 시
         bool Use(Player player);
+        //장착 해제 시
         void UnUse(Player player);
+        //아이템 설명 출력용.
         string description();
 
+        //상점에 있는 아이템을 매개변수로 주게 되면 클래스는 주소값이 넘어가기 때문에 카피본이 필요함.
         IItem DeepCopy();
     }
 
@@ -55,7 +59,7 @@ namespace _4weekProject
         public HealthPotion(int num = 1)
         {
             Name = "힐링포션";
-            type = ItemType.NonConsumable;
+            type = ItemType.Consumable;
             amt = num;
             buyPrice = 20;
             sellPrice = Math.Round(buyPrice * sellingratio);
@@ -81,7 +85,7 @@ namespace _4weekProject
         public StrengthPotion(int num = 1)
         {
             Name = "힘영약";
-            type = ItemType.NonConsumable;
+            type = ItemType.Consumable;
             amt = num;
             buyPrice = 300;
             sellPrice = Math.Round(buyPrice * sellingratio);

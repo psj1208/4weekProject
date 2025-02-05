@@ -117,6 +117,7 @@ namespace _4weekProject
             Thread.Sleep(1000);
         }
 
+        //골드 흭득 및 알람
         public void GainGold(int a)
         {
             Gold += a;
@@ -130,6 +131,7 @@ namespace _4weekProject
             Health -= damage;
             if (Dead())
             {
+                Health = 0;
                 Text.TextingLine($"{Name}이 사망했습니다.", ConsoleColor.Red, false);
                 IsDead = true;
             }
@@ -137,11 +139,14 @@ namespace _4weekProject
                 Text.TextingLine($"{Name}이 {damage}피해를 받았습니다!", ConsoleColor.Magenta, false);
         }
 
+        //아이템 흭득 및 알람
         public void GainItem(IItem item)
         {
             Text.TextingLine($"{item.Name} 을 흭득하였습니다.", ConsoleColor.Green);
             AddInven(item);
         }
+
+        //인벤토리에 아이템 추가
         public void AddInven(IItem item)
         {
             if (inven != null)
@@ -149,6 +154,8 @@ namespace _4weekProject
                 inven.AddItem(item);
             }
         }
+
+        //스탯 출력
         public void ShowStat()
         {
             (int left, int top) point;
@@ -166,6 +173,7 @@ namespace _4weekProject
             Text.Texting("\n\n");
         }
 
+        //죽음 판정
         public bool Dead()
         {
             return Health <= 0 ? true : false;
@@ -177,6 +185,8 @@ namespace _4weekProject
             cha.TakeDamage(Attack);
             Console.WriteLine();
         }
+
+        //경험치 흭득 및 레벨업 및 알람
         public void Getexp(int num)
         {
             exp += num;
@@ -192,15 +202,19 @@ namespace _4weekProject
             }
         }
 
+        //아이템 장착 및 알람
         public bool Equip(IItem item)
         {
+            //무기의 경우
             if (item is Weapon)
             {
+                //비엇을 시 장착 후 true 반환
                 if (curWeapon == null)
                 {
                     curWeapon = item;
                     return true;
                 }
+                //안 비었을 시 현재 장비 장착 해제 후 장착
                 else
                 {
                     inven.AddItem(curWeapon);
@@ -209,13 +223,16 @@ namespace _4weekProject
                     return true;
                 }
             }
+            //방어구의 경우
             else if (item is Armour)
             {
+                //위와 같음
                 if (curArmour == null)
                 {
                     curArmour = item;
                     return true;
                 }
+                //위와 같음
                 else
                 {
                     inven.AddItem(curArmour);
@@ -224,6 +241,7 @@ namespace _4weekProject
                     return true;
                 }
             }
+            //장착 실패 시 인데. 안 나올듯.
             return false;
         }
     }
@@ -233,6 +251,7 @@ namespace _4weekProject
         public List<IItem> items;
         public Player player;
 
+        //플레이어를 매개변수로 받음으로써 플레이어에게 귀속.
         public Inventory(Player p)
         {
             items = new List<IItem>();
@@ -266,6 +285,7 @@ namespace _4weekProject
             }
         }
 
+        //찾는 아이템의 이름을 대조해서 인벤토리의 아이템의 인덱스를 반환
         int SearchItem(string name)
         {
             for (int i = 0; i < items.Count; i++)
@@ -277,18 +297,22 @@ namespace _4weekProject
         }
         public void AddItem(IItem item)
         {
+            //소비품일 시
             if (item is Consumable)
             {
                 int find = SearchItem(item.Name);
+                //같은 품목을 찾지 못함
                 if (find == -1)
                 {
                     items.Add(item);
                 }
+                //같은 품목을 찾을 시 수량을 증가
                 else
                 {
                     items[find].amt++;
                 }
             }
+            //장비품은 수량이 없으니 그냥 추가.
             else
             {
                 items.Add(item);
@@ -297,17 +321,22 @@ namespace _4weekProject
         }
         public void UseItem(int num)
         {
+            //인벤토리에서 품목은 1부터 시작하기에 1을 빼야함.
             num--;
+            //소비품일 시
             if (items[num] is Consumable)
             {
                 items[num].Use(player);
+                //수량이 0이 되면 인벤토리에서 제거한다.
                 if (items[num].amt <= 0)
                 {
                     items.Remove(items[num]);
                 }
             }
+            //장비일 시
             else
             {
+                //아이템이 장착되면 인벤토리에서 아이템을 제거한다.
                 if (items[num].Use(player))
                 {
                     items.Remove(items[num]);

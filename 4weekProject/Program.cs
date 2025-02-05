@@ -9,6 +9,7 @@ using static GlobalData;
 
 namespace _4weekProject
 {
+    //Text클래스를 활용하기 위한 int형 배열 생성용 static 클래스(스크립트에서 활용할 도구용 메서드들은 static으로 대부분 선언)
     public static class Number
     {
         public static int[] Make(int start,int end)
@@ -21,11 +22,13 @@ namespace _4weekProject
             return ints;
         }
     }
+    //Text클래스를 활용하기 위한 x,y 좌표를 가진 클래스
     public struct Point_
     {
         int x;
         int y;
     }
+    //유니티의 Scene의 역할을 하는 열거형.
     public enum SceneType
     {
         Lobby,
@@ -33,17 +36,19 @@ namespace _4weekProject
         Explore,
         Store
     }
-
+    //아이템이 소모품인지 아닌지 구분하기 위함이였는데. 포션들을 따로따로 클래스로 구현해놓아서 필요가 없어짐. 혹시 모르니 남겨둠.
     public enum ItemType
     {
         Consumable,
         NonConsumable
     }
+    //장비가 무기인지 방어구인지(중복 착용을 막기 위함)
     public enum EquipmentType
     {
         weapon,
         armour
     }
+    //플레이어인지 아닌지 구분
     public enum CharacterType
     {
         Player, //Warrior 타입을 대체합니다.
@@ -63,7 +68,9 @@ namespace _4weekProject
             Player player = new Player();
             Stage stage = new Stage();
             Shop shop = new Shop();
+            //게임 종료 구분 여부
             bool gameexit = false;
+            //진행할 스테이지의 단계를 담아둘 변수
             int Curstage = 0;
             //게임 종료 활성화 시 탈출
             while (gameexit == false)
@@ -76,6 +83,7 @@ namespace _4weekProject
                     player = new Player(name);
                     shop = new Shop(player);
                     //디버깅 코드
+                    player.Health = 10;
                     player.inven.AddItem(ItemDataBase.ShopDataBase[0][0].DeepCopy());
                     player.inven.AddItem(ItemDataBase.ShopDataBase[0][1].DeepCopy());
                     player.inven.AddItem(new HealthPotion().DeepCopy());
@@ -83,7 +91,7 @@ namespace _4weekProject
                     player.inven.AddItem(new HealthPotion().DeepCopy());
                     Text.TextingLine("마을로 입장하겠습니다. 조금만 기다려주세요");
                     Counting(3);
-                    //씬 이동 역할
+                    //씬 이동. 타입을 마을로.
                     curSceneType = SceneType.Home;
                 }
                 //게임 시작 후 마을로
@@ -101,6 +109,7 @@ namespace _4weekProject
                         int input = Text.GetInput(null, 1, 2, 3, 4);
                         switch (input)
                         {
+                            //상태 보기
                             case 1:
                                 Console.Clear();
                                 Text.TextingLine("플레이어의 현재 스탯입니다.", ConsoleColor.Green);
@@ -109,16 +118,19 @@ namespace _4weekProject
                                 input = Text.GetInput("마을로 돌아가시려면 0을 입력해주세요.", 0);
                                 Console.Clear();
                                 break;
+                            //인벤토리
                             case 2:
                                 Console.Clear();
                                 player.inven.ShowInventory();
                                 Console.Clear();
                                 break;
+                            //상점
                             case 3:
                                 Console.Clear();
                                 shop.ShowShop();
                                 Console.Clear();
                                 break;
+                            //스테이지 선택
                             case 4:
                                 Console.Clear();
                                 Text.TextingLine(" 스테이지 목록 !");
@@ -135,10 +147,13 @@ namespace _4weekProject
                                 }
                                 Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Magenta, false);
                                 input = Text.GetInput("해당 스테이지 번호를 입력해주세요", Number.Make(1,StageDB.stageList.Count));
+                                //스테이지 설정을 불러오기 위한 데이터베이스 접근
                                 stage = StageDB.stageList[input-1];
                                 Text.TextingLine($"스테이지 {input}으로 이동합니다.");
+                                //스테이지 단계 저장(클리어 보수를 구분하기 위함)
                                 Curstage = input - 1;
                                 Counting(3);
+                                //씬타입을 모험으로
                                 curSceneType = SceneType.Explore;
                                 break;
                             default:
@@ -147,16 +162,16 @@ namespace _4weekProject
                         break;
                     }
                 }
+                //모험(스테이지)
                 else if (curSceneType == SceneType.Explore)
                 {
                     Console.Clear();
                     Random rand = new Random();
+                    //공격 턴을 구분하기 위함
                     bool isPlayerturn = true;
                     int clear = 0; 
                     for (int i = 0; i < stage.length; i++)
                     {
-                        if (player.IsDead == true)
-                            break;
                         Monster monster = stage.MakeMonster().GetCopy();
                         Text.Texting("탐험 중 ", ConsoleColor.Blue, false);
                         for (int a = 0; a < 5; a++)
@@ -186,20 +201,24 @@ namespace _4weekProject
                             Thread.Sleep(1000);
                         }
                         Console.Clear();
+                        //전투 시작
                         if (input == 0)
                         {
                             while (true)
                             {
+                                //몬스터나 플레이어가 죽을 시 전투 종료
                                 if (player.IsDead == true || monster.IsDead == true)
                                 {
                                     break;
                                 }
+                                //플레이어 턴
                                 if (isPlayerturn == true)
                                 {
                                     player.AttackEnemy(monster);
                                     isPlayerturn = !isPlayerturn;
                                     Thread.Sleep(1000);
                                 }
+                                //적 턴
                                 else if (isPlayerturn == false)
                                 {
                                     monster.AttackEnemy(player);
@@ -207,14 +226,17 @@ namespace _4weekProject
                                     Thread.Sleep(1000);
                                 }
                             }
+                            //플레이어가 패배했을 시.
                             if (player.IsDead == true)
                             {
+                                isPlayerturn = true;
                                 Text.TextingLine("패배하였습니다.", ConsoleColor.Red);
                                 Text.GetInput("다음 (0 입력)", 0);
-                                gameexit = true;
                             }
+                            //플레이어가 승리했을 시
                             else
                             {
+                                isPlayerturn = true;
                                 Text.TextingLine("승리하였습니다.", ConsoleColor.Green);
                                 clear++;
                                 player.Getexp(monster.Exp);
@@ -242,19 +264,31 @@ namespace _4weekProject
                                 }
                             }
                             Console.Clear();
+                            //마을 귀환을 택할 경우 반복문(모험) 탈출
+                            //0이면 break를 하지 않기에 계속 반복문(모험) 진행
                             if (input == 1)
                                 break;
                         }
+                        //도망가기 선택 시 반복문(모험) 탈출
                         else 
                             break;
+                        //플레이어가 죽엇을 시 반복문을 탈출(while문 조건을 채운다)
+                        if (player.IsDead == true)
+                        {
+                            gameexit = true;
+                            break;
+                        }
                     }
+                    //씬 타입을 마을로
                     curSceneType = SceneType.Home;
                 }
             }
+            //while문 탈출(게임 종료 활성화 시 = 사망) 스탯창을 띄우고 게임 종료
             Console.Clear();
             Console.WriteLine("게임 끝!");
             player.ShowStat();
         }
+        //대기 시간 구현 메서드
         static  void Counting(int num)
         {
             for (int i = 0; i < num; i++)

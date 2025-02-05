@@ -146,6 +146,7 @@ namespace _4weekProject
             SetTotalProb();
         }
 
+        //가중치 합계 및 설정
         public void SetTotalProb()
         {
             totalProb = 0;
@@ -157,6 +158,9 @@ namespace _4weekProject
                 monsters[i] = spawn;
             }
         }
+
+
+        //가중치에 따라 랜덤으로 몬스터 하나 반환
         public Monster MakeMonster()
         {
             Random rand = new Random();

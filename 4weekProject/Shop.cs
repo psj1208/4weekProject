@@ -8,6 +8,7 @@ using static GlobalData;
 
 namespace _4weekProject
 {
+    //상점 관련
     public class Shop
     {
         Player player;
@@ -53,14 +54,18 @@ namespace _4weekProject
                         totallength++;
                     }
                 }
+                Text.TextingLine(" 서 비 스  ", ConsoleColor.Blue, false);
                 Text.TextingLine($"{totallength + 1} . 휴식 (50원) : 체력을 50% 회복시켜준다.", ConsoleColor.Green, false);
                 Text.TextingLine("\n-------------------------------------------------------", ConsoleColor.Red, false);
                 Text.TextingLine("아이템 구입은 해당 번호를, 나가시려면 0을 입력해주세요.", ConsoleColor.Green);
                 int input = Text.GetInput(null, Number.Make(0, totallength + 1));
+                //아이템의 번호는 인덱스보다 1 높으니 1을 빼준다.
                 input--;
                 Text.SaveEndPos();
+                //0을 입력하게되면 -- 연산때문에 -1이 되기 때문.
                 if (input == -1)
                     break;
+                //휴식 구매 시
                 else if (input == totallength) 
                 {
                     if (player.Gold >= 50)
@@ -77,6 +82,7 @@ namespace _4weekProject
                     Thread.Sleep(1000);
                     Console.Clear();
                 }
+                //휴식 제외 다른 물품 구매
                 else
                 {
                     IItem selectitem = ItemDataBase.ShopDataBase[input / count][input % count].DeepCopy();
